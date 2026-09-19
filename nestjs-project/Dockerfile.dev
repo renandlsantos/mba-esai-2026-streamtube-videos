@@ -1,9 +1,8 @@
-FROM node:25.6.0-slim
-
-RUN apt update && apt install -y procps curl
-
+FROM node:22.20.0-bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg curl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /home/node/app
-
+RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 USER node
-
-CMD [ "tail", "-f", "/dev/null" ] 
+COPY --chown=node:node package.json package-lock.json ./
+RUN npm ci
+CMD ["npm", "run", "start:dev"]

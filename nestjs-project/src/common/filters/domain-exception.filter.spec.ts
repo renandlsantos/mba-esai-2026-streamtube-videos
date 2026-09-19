@@ -27,8 +27,12 @@ describe('DomainExceptionFilter', () => {
       }),
       getArgs: () => [],
       getArgByIndex: () => null,
-      switchToRpc: () => ({}) as any,
-      switchToWs: () => ({}) as any,
+      switchToRpc: () => {
+        throw new Error('Not used in HTTP test');
+      },
+      switchToWs: () => {
+        throw new Error('Not used in HTTP test');
+      },
       getType: () => 'http',
     } as unknown as ArgumentsHost;
   });
@@ -51,7 +55,7 @@ describe('DomainExceptionFilter', () => {
     expect(mockJson).toHaveBeenCalledWith({
       statusCode: 401,
       error: 'INVALID_CREDENTIALS',
-      message: expect.any(String),
+      message: expect.any(String) as unknown,
     });
   });
 
@@ -62,7 +66,7 @@ describe('DomainExceptionFilter', () => {
     expect(mockJson).toHaveBeenCalledWith({
       statusCode: 403,
       error: 'EMAIL_NOT_CONFIRMED',
-      message: expect.any(String),
+      message: expect.any(String) as unknown,
     });
   });
 
@@ -73,7 +77,7 @@ describe('DomainExceptionFilter', () => {
     expect(mockJson).toHaveBeenCalledWith({
       statusCode: 401,
       error: 'INVALID_TOKEN',
-      message: expect.any(String),
+      message: expect.any(String) as unknown,
     });
   });
 
@@ -84,7 +88,7 @@ describe('DomainExceptionFilter', () => {
     expect(mockJson).toHaveBeenCalledWith({
       statusCode: 401,
       error: 'TOKEN_EXPIRED',
-      message: expect.any(String),
+      message: expect.any(String) as unknown,
     });
   });
 
@@ -95,7 +99,7 @@ describe('DomainExceptionFilter', () => {
     expect(mockJson).toHaveBeenCalledWith({
       statusCode: 401,
       error: 'TOKEN_REUSE_DETECTED',
-      message: expect.any(String),
+      message: expect.any(String) as unknown,
     });
   });
 });

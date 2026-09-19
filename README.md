@@ -215,3 +215,8 @@ Detalhes completos em `docs/project-plan.md`.
 | Testes | Jest, Supertest (backend); Vitest, MSW, Playwright (frontend) |
 | Qualidade | ESLint, Prettier |
 </content>
+
+
+## Entrega MBA — fase 03 de vídeos
+
+Implementação SDD na branch `feature/sdd-fase-296`. Consulte [execução, arquitetura e contratos da fase 03](docs/phases/phase-03-videos/README.md) e [evidências de validação](docs/phases/phase-03-videos/progress.md). A PR desta fase deve visar `dev`.

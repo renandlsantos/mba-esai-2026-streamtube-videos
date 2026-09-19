@@ -1,0 +1,6 @@
+# Exemplo opt-in; não altera configuração global e não contém segredos.
+# Servidor Docker Context7 usado nesta sessão (imagem local 1174e6a29634).
+# Para outra máquina, obtenha e valide a imagem oficial antes de habilitar.
+[mcp_servers.context7]
+command = "docker"
+args = ["run", "--rm", "-i", "-e", "MCP_TRANSPORT=stdio", "mcp/context7"]

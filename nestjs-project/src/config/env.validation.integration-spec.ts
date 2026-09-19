@@ -1,3 +1,4 @@
+import { jsonObject } from '../test/json-contract';
 import { envValidationSchema } from './env.validation';
 
 const requiredEnv = {
@@ -32,7 +33,9 @@ describe('envValidationSchema — SWAGGER_ENABLED', () => {
   });
 
   it('should apply default false when SWAGGER_ENABLED is not set', () => {
-    const { value, error } = validate({});
+    const result = validate({});
+    const value = jsonObject(result.value);
+    const error = result.error;
     expect(error).toBeUndefined();
     expect(value.SWAGGER_ENABLED).toBe('false');
   });

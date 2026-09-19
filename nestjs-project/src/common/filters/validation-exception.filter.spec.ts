@@ -19,8 +19,12 @@ describe('ValidationExceptionFilter', () => {
       }),
       getArgs: () => [],
       getArgByIndex: () => null,
-      switchToRpc: () => ({}) as any,
-      switchToWs: () => ({}) as any,
+      switchToRpc: () => {
+        throw new Error('Not used in HTTP test');
+      },
+      switchToWs: () => {
+        throw new Error('Not used in HTTP test');
+      },
       getType: () => 'http',
     } as unknown as ArgumentsHost;
   });
