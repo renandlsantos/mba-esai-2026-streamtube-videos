@@ -26,6 +26,16 @@ export class VideosRepository {
   update(id: string, values: Partial<Video>) {
     return this.dataSource.getRepository(Video).update(id, values);
   }
+  failProcessing(id: string) {
+    return this.dataSource.getRepository(Video).update(
+      { id, status: 'processing' },
+      {
+        status: 'error',
+        error_code: 'VIDEO_PROCESSING_FAILED',
+        enqueue_pending: false,
+      },
+    );
+  }
   pending() {
     return this.dataSource.getRepository(Video).find({
       where: { status: 'processing', enqueue_pending: true },

@@ -15,7 +15,7 @@ Todos os comandos Node foram executados no container `nestjs-api` do projeto Com
 |---|---|
 | `docker compose up -d --build` | API saudável, worker separado iniciado, PostgreSQL/Redis/MinIO/Mailpit disponíveis |
 | `npm ci` no Dockerfile | 1129 pacotes instalados pelo lockfile |
-| `npm test -- --runInBand` | 25 suítes, 149 testes aprovados |
+| `npm test -- --runInBand` | 26 suítes, 150 testes aprovados |
 | `npm run test:e2e -- --runInBand` | 4 suítes, 55 testes aprovados |
 | `npx tsc --noEmit` | Aprovado |
 | `npm run lint` | Aprovado, zero erros; seis avisos herdados de mocks de QueryBuilder/FindOptions em testes de auth |
@@ -54,3 +54,12 @@ O corpus Context7 consultado não é garantia de correspondência exata com as v
 | FR-010 | AGENTS, Spec Kit, docs e ajustes mínimos de tipagem | suíte completa, tsc, lint e build |
 
 Não houve merge, submissão na plataforma ou alteração de volumes externos a este projeto. Volumes do Compose permanecem preservados.
+
+## Convergência após revisão independente
+
+A revisão de `6cdcc88` identificou dois gaps reais, registrados como T014/T015 e corrigidos antes do encerramento:
+
+- **Falha terminal fora do processador:** BullMQ pode marcar um job como failed por `deferredFailure` após excesso de stalled sem chamar o callback. O evento failed agora executa atualização condicional `processing → error`; uma reconciliação periódica de jobs failed persistidos recupera eventos perdidos/reinícios. A paginação de 50 jobs evita limitar a reconciliação aos primeiros registros. Vídeos ready não são sobrescritos. O teste `video-queue.integration-spec.ts` usa SDK BullMQ, Redis e PostgreSQL reais, injeta o campo `defa` que o script de stalled grava e comprova que o processador não executa, o erro persiste e o reinício reconcilia estado pendente. Não simula matar processos reais nem aguarda expiração física de lock.
+- **Throttle incompatível com multipart/polling:** o limite herdado de 10 requisições/minuto era compartilhado por handler/IP. Assinaturas agora permitem 720/minuto e status 120/minuto por usuário autenticado. Os outros endpoints preservam os limites existentes. O e2e faz 12 assinaturas e 35 consultas imediatas, sem transmitir gigabytes, garantindo que os fluxos não interrompam na 11ª chamada. O cliente Python tem cinco tentativas para 429, respeita Retry-After em segundos/data HTTP e usa backoff quando ausente; outros erros não são repetidos.
+
+Validação após correções: 150 testes Node, 55 e2e, TypeScript, lint e build aprovados; mais três testes Python de Retry-After, backoff limitado e não repetição de erro 403. Os testes de retry HTTP usam mocks declarados, enquanto o cenário de falha terminal usa infraestrutura real.

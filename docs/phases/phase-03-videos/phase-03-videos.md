@@ -37,7 +37,7 @@ Tabela `videos`: `id` UUID primário; `slug` UUID único; `channel_id` FK para c
 | GET `/videos/:slug/download` | 307 para GET S3 com attachment | Público; somente ready |
 | GET `/videos/:slug/thumbnail` | 307 para JPEG assinado | Público; somente ready |
 
-Início recebe `{title, size_bytes, content_type}`. Conclusão recebe `{parts: [{part_number, etag}]}`. O cliente preserva o cabeçalho Range ao seguir o redirect; MinIO responde 206. URLs expiram em 900 segundos. A API nunca recebe o corpo binário do vídeo.
+Início recebe `{title, size_bytes, content_type}`. Conclusão recebe `{parts: [{part_number, etag}]}`. O cliente preserva o cabeçalho Range ao seguir o redirect; MinIO responde 206. URLs expiram em 900 segundos. A API nunca recebe o corpo binário do vídeo. A assinatura permite 720 requisições/minuto e o status 120/minuto, por JWT sub, independentemente do IP compartilhado. O cliente repete 429 com Retry-After/backoff limitado.
 
 ### Authorization Matrix
 Criar exige usuário autenticado com canal. Assinar, concluir, cancelar e consultar status exigem o mesmo proprietário do canal. Outro dono recebe 403; inexistente, 404; sem JWT, 401. Somente vídeos ready possuem metadados e mídia públicos. Chaves internas do storage não são retornadas.
@@ -46,7 +46,7 @@ Criar exige usuário autenticado com canal. Assinar, concluir, cancelar e consul
 `VIDEO_NOT_FOUND` (404), `VIDEO_FORBIDDEN` (403), `VIDEO_STATE_CONFLICT` (409), `VIDEO_INVALID_UPLOAD` (400). Estado error contém `VIDEO_PROCESSING_FAILED` ou `UPLOAD_CANCELLED`. DTO inválido retorna 400 pelo ValidationPipe. Erros de infraestrutura não retornam credenciais ou URLs privadas.
 
 ### Events/Messages
-Fila `video-processing`; trabalho `process-video`; payload `{version: 1, videoId}`; jobId igual ao UUID. Três tentativas com backoff exponencial iniciado em 1 segundo. Intenção e estado processing são gravados na mesma transação. O dispatcher lê pendências, publica e limpa a intenção após confirmação; falha conserva a intenção. Entrega at-least-once e processamento idempotente, sem promessa de exactly-once. Worker ignora vídeos já finalizados e só publica ready depois de salvar metadados e thumbnail.
+Fila `video-processing`; trabalho `process-video`; payload `{version: 1, videoId}`; jobId igual ao UUID. Três tentativas com backoff exponencial iniciado em 1 segundo. Intenção e estado processing são gravados na mesma transação. O dispatcher lê pendências, publica e limpa a intenção após confirmação; falha conserva a intenção. Eventos failed e reconciliação periódica dos jobs failed persistidos cobrem falhas terminais fora do callback; UPDATE condicional evita substituir ready por error. Entrega at-least-once e processamento idempotente, sem promessa de exactly-once. Worker ignora vídeos já finalizados e só publica ready depois de salvar metadados e thumbnail.
 
 ## Dependency Map
 SI-03.1 → SI-03.2 → SI-03.3 → SI-03.4 → SI-03.5 → SI-03.6. Storage pode ser testado isoladamente após a infraestrutura. Worker depende do modelo e do storage. Frontend não é alterado.

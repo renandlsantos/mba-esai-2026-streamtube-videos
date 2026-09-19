@@ -142,6 +142,20 @@ describe('Videos (real S3, Redis, worker and database e2e)', () => {
     const large = await start(MAX_VIDEO_BYTES);
     expect(large.status).toBe(201);
     expect((large.body as { part_count: number }).part_count).toBe(640);
+    const id = (large.body as { id: string }).id;
+    for (let part = 1; part <= 12; part++) {
+      await request(app.getHttpServer())
+        .post(`/videos/${id}/upload-parts/${part}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(201);
+    }
+    // Thirty-five immediate requests are stricter than a minute of 2s polling.
+    for (let poll = 0; poll < 35; poll++) {
+      await request(app.getHttpServer())
+        .get(`/videos/${id}/status`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+    }
     await request(app.getHttpServer())
       .delete(`/videos/${(large.body as { id: string }).id}/upload`)
       .set('Authorization', `Bearer ${token}`)

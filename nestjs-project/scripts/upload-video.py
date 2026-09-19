@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Cliente multipart: Python 3, biblioteca padrão, memória limitada a uma parte."""
 import argparse
+from email.utils import parsedate_to_datetime
 import json
 import mimetypes
 import os
@@ -10,12 +11,35 @@ import urllib.error
 import urllib.request
 
 
+def open_with_retry(request, timeout=60, attempts=5):
+    """Retry only explicit rate limits, respecting Retry-After without duplicating successes."""
+    for attempt in range(attempts):
+        try:
+            return urllib.request.urlopen(request, timeout=timeout)
+        except urllib.error.HTTPError as error:
+            if error.code != 429 or attempt == attempts - 1:
+                raise
+            header = error.headers.get('Retry-After')
+            delay = min(2 ** attempt, 60)
+            if header:
+                try:
+                    delay = max(0, float(header))
+                except ValueError:
+                    try:
+                        delay = max(0, parsedate_to_datetime(header).timestamp() - time.time())
+                    except (TypeError, ValueError, OverflowError):
+                        pass
+            error.close()
+            time.sleep(delay)
+    raise RuntimeError('Rate limit retries exhausted')
+
+
 def upload_video(path, title, api, token):
     def api_call(method, route, body=None):
         data = None if body is None else json.dumps(body).encode()
         request = urllib.request.Request(api.rstrip('/') + route, data=data, method=method,
             headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'})
-        with urllib.request.urlopen(request, timeout=60) as response:
+        with open_with_retry(request, timeout=60) as response:
             payload = response.read()
             return json.loads(payload) if payload else None
 
@@ -35,7 +59,7 @@ def upload_video(path, title, api, token):
             part = source.read(video['part_size'])
             request = urllib.request.Request(signed['url'], data=part, method='PUT',
                 headers={'Content-Length': str(len(part))})
-            with urllib.request.urlopen(request, timeout=300) as response:
+            with open_with_retry(request, timeout=300) as response:
                 etag = response.headers.get('ETag')
                 if not etag:
                     raise RuntimeError('Storage não retornou ETag.')

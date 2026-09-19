@@ -1,3 +1,5 @@
+import { Throttle } from '@nestjs/throttler';
+import { videoUserTracker } from './video-throttle';
 import {
   Body,
   Controller,
@@ -34,6 +36,9 @@ export class VideosController {
   start(@CurrentUser() user: JwtPayload, @Body() dto: StartUploadDto) {
     return this.videos.start(user.sub, dto);
   }
+  @Throttle({
+    default: { limit: 720, ttl: 60000, getTracker: videoUserTracker },
+  })
   @Post(':id/upload-parts/:partNumber')
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Sign an upload part' })
@@ -65,6 +70,9 @@ export class VideosController {
   ) {
     return this.videos.cancel(user.sub, id);
   }
+  @Throttle({
+    default: { limit: 120, ttl: 60000, getTracker: videoUserTracker },
+  })
   @Get(':id/status')
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Get owner processing status' })
