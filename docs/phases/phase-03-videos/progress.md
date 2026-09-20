@@ -63,3 +63,11 @@ A revisão de `6cdcc88` identificou dois gaps reais, registrados como T014/T015 
 - **Throttle incompatível com multipart/polling:** o limite herdado de 10 requisições/minuto era compartilhado por handler/IP. Assinaturas agora permitem 720/minuto e status 120/minuto por usuário autenticado. Os outros endpoints preservam os limites existentes. O e2e faz 12 assinaturas e 35 consultas imediatas, sem transmitir gigabytes, garantindo que os fluxos não interrompam na 11ª chamada. O cliente Python tem cinco tentativas para 429, respeita Retry-After em segundos/data HTTP e usa backoff quando ausente; outros erros não são repetidos.
 
 Validação após correções: 150 testes Node, 55 e2e, TypeScript, lint e build aprovados; mais três testes Python de Retry-After, backoff limitado e não repetição de erro 403. Os testes de retry HTTP usam mocks declarados, enquanto o cenário de falha terminal usa infraestrutura real.
+
+## Revalidação local — 2026-09-20
+
+O enunciado integral foi revisitado. `git fetch --all` atualizou origin/upstream sem merge; o HEAD implementado inclui `upstream/main` em `8459b2f`. Os testes foram repetidos em **nova stack `mba-esai-296-validation`**, com volumes próprios, preservando os dados do ambiente anterior. Portas de validação: API 53096, MinIO 59096/59097, Mailpit 58096.
+
+Resultados: 150 testes Node em 26 suítes, 55 e2e em quatro suítes e três testes Python aprovados; TypeScript, lint e build com exit 0. O build Docker e a inicialização aplicaram migrations em volume novo. O teste real de BullMQ confirmou novamente deferredFailure, preservação de ready e recuperação após reinício. O cliente Python percorreu cadastro, confirmação no Mailpit, login, multipart e processamento até ready pela API externa.
+
+Correções documentais desta rodada: status da fase 03 no README principal alinhado ao backend implementado, com frontend de vídeos fora do escopo; configuração MCP PostgreSQL portada no exemplo Codex e validada por handshake/tools-list/SELECT read-only. O pacote MCP legado do starter está fixado em 0.6.2 e sua condição de não suportado foi registrada nas referências. Nenhuma configuração global ou segredo real foi lido/alterado. Os limites anteriores de evidência e dependências continuam válidos; não houve teste físico de 10GiB nem remediação de todos os advisories.

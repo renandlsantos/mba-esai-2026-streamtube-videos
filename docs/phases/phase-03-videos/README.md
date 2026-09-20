@@ -84,3 +84,7 @@ python3 -m unittest discover -s scripts -p test_upload_video.py -v
 ```
 
 Para parar preservando os dados: `docker compose stop`. A feature é `feature/sdd-fase-296`; uma PR deve visar `dev`. Não houve merge nem envio à plataforma.
+
+## Servidores MCP no Codex
+
+`.codex/config.toml.example` contém exemplos opt-in de Context7 e PostgreSQL. O servidor PostgreSQL roda dentro do container da API e usa `db` na rede Compose. Inicie a stack antes de habilitá-lo e adapte o nome do container se alterar o projeto Compose. O pacote do starter é legado/não suportado; mantenha-o restrito ao banco didático local. A validação de handshake e SELECT somente leitura está em [library-refs.md](library-refs.md). Nenhuma configuração global é instalada automaticamente.

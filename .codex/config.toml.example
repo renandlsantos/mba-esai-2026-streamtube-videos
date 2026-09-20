@@ -4,3 +4,10 @@
 [mcp_servers.context7]
 command = "docker"
 args = ["run", "--rm", "-i", "-e", "MCP_TRANSPORT=stdio", "mcp/context7"]
+
+# Paridade com o MCP Postgres do starter; apenas banco didático local.
+# Requer docker compose up -d em nestjs-project. Para outro nome de projeto,
+# ajuste somente o nome do container. Node/npx executam dentro do container.
+[mcp_servers.postgres]
+command = "docker"
+args = ["exec", "-i", "mba-esai-296-nestjs-api-1", "npx", "-y", "@modelcontextprotocol/server-postgres@0.6.2", "postgresql://streamtube:streamtube@db/streamtube"]

@@ -13,3 +13,11 @@ Chamadas reais: `resolve-library-id` para BullMQ, AWS SDK JavaScript v3 e FFmpeg
 | NestJS/TypeORM |lockfile existente|Module/DI e repository/transactions já usados no starter |
 
 Dependências novas estão fixadas no package-lock. Endor package-risk: tools de risco não disponíveis; UNKNOWN, sem atestado de segurança e sem usar credenciais Endor.
+
+## Portabilidade MCP PostgreSQL — validação 2026-09-20
+
+O starter configura `@modelcontextprotocol/server-postgres`; o exemplo Codex agora inclui o mesmo servidor, fixado em **0.6.2**, executado por `docker exec -i` no container da API. O host é `db`; usuário/senha são os valores didáticos do Compose, sem credencial real. A versão foi conferida no registro npm.
+
+Fonte primária: [README oficial arquivado do servidor PostgreSQL MCP](https://raw.githubusercontent.com/modelcontextprotocol/servers-archived/main/src/postgres/README.md). A ferramenta query opera em transação READ ONLY. O pacote está marcado como não suportado pelo npm; esta configuração preserva a integração do starter para desenvolvimento local e não representa recomendação de uso em produção.
+
+Validação real: handshake JSON-RPC, tools/list e `query` com `SELECT 1 AS mcp_connection_ok`, retornando 1 na stack isolada. O pacote instalado é 0.6.2; seu handshake anuncia internamente `example-servers/postgres` versão 0.1.0. Nenhuma operação de escrita ou leitura de dados pessoais foi feita pelo MCP. A configuração global do usuário não foi alterada.
